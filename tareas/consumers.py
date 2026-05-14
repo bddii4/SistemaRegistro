@@ -1,4 +1,4 @@
-# WebSocket: conexión en tiempo real entre empleados y admin (solicitudes, notificaciones).
+# WebSocket: conexión en tiempo real entre empleados y admin (solicitudes, notificaciones)
 import json
 from channels.generic.websocket import AsyncWebsocketConsumer
 from channels.db import database_sync_to_async
