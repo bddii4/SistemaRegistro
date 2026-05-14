@@ -1,0 +1,19 @@
+{% extends 'tareas/base.html' %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-5">
+            <div class="card shadow border-0">
+                <div class="card-header bg-danger text-white">
+                    <h5 class="mb-0">Enviar Aviso a todos los Trabajadores</h5>
+                </div>
+                <div class="card-body p-4">
+                    <textarea id="msg" class="form-control mb-3" rows="3" placeholder="Escribe el aviso..."></textarea>
+                    <button onclick="alert('Enviado')" class="btn btn-danger w-100">Emitir Alerta</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

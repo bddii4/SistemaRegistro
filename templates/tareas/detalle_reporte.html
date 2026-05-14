@@ -1,0 +1,78 @@
+{% extends "tareas/base_admin.html" %}
+{% block title %}Reporte — Regintra{% endblock %}
+
+{% block admin_content %}
+<div class="d-flex align-items-center gap-3 mb-4">
+  <a href="{% url 'lista_reportes' %}" class="btn btn-outline-secondary btn-sm">
+    <i class="bi bi-arrow-left me-1"></i>Volver
+  </a>
+  <div>
+    <h4 class="fw-bold mb-0">Detalle del reporte</h4>
+    <p class="text-muted small mb-0">{{ reporte.creado_en|date:"d/m/Y H:i" }}</p>
+  </div>
+</div>
+
+<div class="row g-4">
+  <div class="col-lg-8">
+    <div class="card border-0 shadow-sm">
+      <div class="card-body p-4">
+        <div class="mb-4">
+          <label class="form-label small fw-bold text-uppercase text-muted">
+            <i class="bi bi-cursor-text me-1"></i>Actividad actual
+          </label>
+          <div class="p-3 bg-body-secondary rounded-3">{{ reporte.actividad }}</div>
+        </div>
+        {% if reporte.avances %}
+        <div class="mb-4">
+          <label class="form-label small fw-bold text-uppercase text-muted">
+            <i class="bi bi-check2-circle me-1"></i>Avances
+          </label>
+          <div class="p-3 bg-body-secondary rounded-3">{{ reporte.avances }}</div>
+        </div>
+        {% endif %}
+        {% if reporte.observaciones %}
+        <div class="mb-4">
+          <label class="form-label small fw-bold text-uppercase text-muted">
+            <i class="bi bi-chat-left-text me-1"></i>Observaciones
+          </label>
+          <div class="p-3 bg-body-secondary rounded-3">{{ reporte.observaciones }}</div>
+        </div>
+        {% endif %}
+
+        {% if reporte.estado == 'pendiente' %}
+        <form method="post">
+          {% csrf_token %}
+          <button name="marcar_revisado" type="submit" class="btn btn-success">
+            <i class="bi bi-check-circle me-2"></i>Marcar como revisado
+          </button>
+        </form>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <div class="col-lg-4">
+    <div class="card border-0 shadow-sm">
+      <div class="card-body p-4">
+        <h6 class="fw-bold mb-3">Información</h6>
+        <dl class="mb-0">
+          <dt class="small text-muted text-uppercase">Empleado</dt>
+          <dd class="fw-semibold mb-3">{{ reporte.usuario.get_full_name|default:reporte.usuario.username }}</dd>
+          <dt class="small text-muted text-uppercase">Usuario</dt>
+          <dd class="mb-3">@{{ reporte.usuario.username }}</dd>
+          <dt class="small text-muted text-uppercase">Fecha</dt>
+          <dd class="mb-3">{{ reporte.creado_en|date:"d/m/Y" }}</dd>
+          <dt class="small text-muted text-uppercase">Hora</dt>
+          <dd class="mb-3">{{ reporte.creado_en|date:"H:i" }}</dd>
+          <dt class="small text-muted text-uppercase">Estado</dt>
+          <dd>
+            <span class="badge {% if reporte.estado == 'revisado' %}bg-success{% else %}bg-warning text-dark{% endif %}">
+              {{ reporte.get_estado_display }}
+            </span>
+          </dd>
+        </dl>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

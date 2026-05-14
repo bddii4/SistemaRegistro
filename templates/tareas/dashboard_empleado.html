@@ -1,0 +1,314 @@
+{% extends "tareas/base.html" %}
+{% block title %}Mi Dashboard — Regintra{% endblock %}
+{% block body_class %}empleado-layout{% endblock %}
+
+{% block body %}
+
+<!-- Navbar -->
+<nav class="navbar navbar-dark bg-dark-subtle border-bottom px-4">
+  <a class="navbar-brand fw-bold" href="#">
+    <i class="bi bi-lightning-charge-fill text-primary me-2"></i>Regintra
+  </a>
+  <div class="d-flex align-items-center gap-3">
+    <span class="text-muted small">
+      <i class="bi bi-person-circle me-1"></i>
+      {{ request.user.get_full_name|default:request.user.username }}
+    </span>
+    <span class="badge bg-success-subtle text-success border border-success-subtle">Empleado</span>
+    <a href="{% url 'logout' %}" class="btn btn-outline-secondary btn-sm">
+      <i class="bi bi-box-arrow-left me-1"></i>Salir
+    </a>
+  </div>
+</nav>
+
+<div class="container-xl py-4">
+  <div class="row g-4">
+
+    <!-- Columna izquierda: Timer + Form -->
+    <div class="col-lg-5">
+
+      <!-- Tarjeta del temporizador -->
+      <div class="card shadow-sm border-0 mb-4" id="timer-card">
+        <div class="card-body text-center py-5">
+          <p class="text-muted small text-uppercase fw-semibold letter-spacing mb-3">
+            <i class="bi bi-clock me-1"></i>Próximo reporte en
+          </p>
+          <div class="timer-display" id="timer-display">30:00</div>
+          <div class="timer-progress mt-3">
+            <div class="timer-bar" id="timer-bar"></div>
+          </div>
+          <p class="text-muted small mt-3" id="timer-msg">Trabaja con tranquilidad — te avisaremos</p>
+        </div>
+      </div>
+
+      <!-- Stats del empleado -->
+      <div class="row g-3">
+        <div class="col-6">
+          <div class="card border-0 shadow-sm text-center py-3">
+            <div class="h2 fw-bold text-primary mb-0">{{ total_reportes }}</div>
+            <div class="text-muted small">Total reportes</div>
+          </div>
+        </div>
+        <div class="col-6">
+          <div class="card border-0 shadow-sm text-center py-3">
+            <div class="h2 fw-bold text-success mb-0">{{ reportes_hoy }}</div>
+            <div class="text-muted small">Hoy</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Columna derecha: Historial -->
+    <div class="col-lg-7">
+      <div class="card border-0 shadow-sm">
+        <div class="card-header bg-transparent border-0 pb-0 pt-3 px-4">
+          <h5 class="fw-bold mb-0"><i class="bi bi-journal-text me-2 text-primary"></i>Mis reportes recientes</h5>
+        </div>
+        <div class="card-body px-4">
+          {% if mis_reportes %}
+          <div class="d-flex flex-column gap-3">
+            {% for r in mis_reportes %}
+            <div class="reporte-item p-3 rounded-3 border">
+              <div class="d-flex justify-content-between align-items-start mb-2">
+                <span class="small text-muted">
+                  <i class="bi bi-calendar3 me-1"></i>{{ r.creado_en|date:"d/m/Y" }}
+                  <i class="bi bi-clock ms-2 me-1"></i>{{ r.creado_en|date:"H:i" }}
+                </span>
+                <span class="badge {% if r.estado == 'revisado' %}bg-success-subtle text-success{% else %}bg-warning-subtle text-warning-emphasis{% endif %}">
+                  {{ r.get_estado_display }}
+                </span>
+              </div>
+              <p class="mb-1 fw-semibold small">{{ r.actividad|truncatechars:120 }}</p>
+              {% if r.observaciones %}
+              <p class="mb-0 small text-muted">{{ r.observaciones|truncatechars:80 }}</p>
+              {% endif %}
+            </div>
+            {% endfor %}
+          </div>
+          {% else %}
+          <div class="text-center py-5 text-muted">
+            <i class="bi bi-inbox fs-1 d-block mb-2 opacity-25"></i>
+            <p>Aún no has enviado reportes.<br>El formulario aparecerá cada 30 minutos.</p>
+          </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ═══════════════ MODAL ALARMA ═══════════════ -->
+<div class="modal fade" id="alarma-modal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content border-0 shadow-lg">
+
+      <div class="modal-header alarma-header border-0 pb-0">
+        <div class="w-100 text-center pt-2">
+          <div class="alarma-icon-wrap mx-auto mb-3">
+            <i class="bi bi-bell-fill alarma-icon"></i>
+          </div>
+          <h4 class="fw-bold mb-1">¡Hora de reportar!</h4>
+          <p class="text-muted small">Han pasado 30 minutos. Describe lo que estás haciendo.</p>
+        </div>
+      </div>
+
+      <div class="modal-body px-4 pb-0" id="modal-form-body">
+        <form id="reporte-form" method="post" action="{% url 'enviar_reporte' %}">
+          {% csrf_token %}
+          <input type="hidden" id="solicitud-id-field" name="solicitud_id" value="">
+
+          <div class="mb-3">
+            <label class="form-label fw-semibold small text-uppercase text-muted">
+              <i class="bi bi-cursor-text me-1"></i>¿Qué estás haciendo ahora?
+            </label>
+            <textarea name="actividad" id="campo-actividad" class="form-control" rows="3"
+              placeholder="Describe tu actividad actual con detalle..." required></textarea>
+          </div>
+          <div class="mb-3">
+            <label class="form-label fw-semibold small text-uppercase text-muted">
+              <i class="bi bi-check2-circle me-1"></i>Avances del día
+            </label>
+            <textarea name="avances" class="form-control" rows="2"
+              placeholder="¿Qué has avanzado hasta ahora?"></textarea>
+          </div>
+          <div class="mb-3">
+            <label class="form-label fw-semibold small text-uppercase text-muted">
+              <i class="bi bi-chat-left-text me-1"></i>Observaciones
+            </label>
+            <textarea name="observaciones" class="form-control" rows="2"
+              placeholder="Bloqueos, comentarios adicionales..."></textarea>
+          </div>
+        </form>
+      </div>
+
+      <div class="modal-footer border-0 px-4 pb-4 flex-column gap-2">
+        <button class="btn btn-primary w-100 py-2 fw-semibold" id="btn-enviar-reporte" onclick="enviarReporte()">
+          <i class="bi bi-send me-2"></i>Enviar reporte
+        </button>
+        <div class="text-center text-muted small" id="modal-timer-label"></div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- Indicador WS -->
+<div class="ws-indicator" id="ws-indicator" title="Estado de conexión">
+  <span class="ws-dot" id="ws-dot"></span>
+  <span class="ws-label" id="ws-label">Conectando…</span>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// ═══════════════════════════════════════════════════════════
+//  TEMPORIZADOR — 30 minutos
+// ═══════════════════════════════════════════════════════════
+const DURACION = 30 * 60;  // 30 minutos en segundos
+let segundosRestantes = DURACION;
+let timerInterval = null;
+const modal = new bootstrap.Modal(document.getElementById('alarma-modal'));
+
+function formatTime(s) {
+  const m = Math.floor(s / 60);
+  const sec = s % 60;
+  return `${String(m).padStart(2,'0')}:${String(sec).padStart(2,'0')}`;
+}
+
+function actualizarTimer() {
+  document.getElementById('timer-display').textContent = formatTime(segundosRestantes);
+  const pct = ((DURACION - segundosRestantes) / DURACION) * 100;
+  document.getElementById('timer-bar').style.width = pct + '%';
+
+  const card = document.getElementById('timer-card');
+  if (segundosRestantes <= 60) {
+    card.classList.add('timer-urgente');
+    document.getElementById('timer-msg').textContent = '⚠️ ¡Prepara tu reporte!';
+  } else {
+    card.classList.remove('timer-urgente');
+    document.getElementById('timer-msg').textContent = 'Trabaja con tranquilidad — te avisaremos';
+  }
+}
+
+function iniciarTimer() {
+  clearInterval(timerInterval);
+  segundosRestantes = DURACION;
+  actualizarTimer();
+  timerInterval = setInterval(() => {
+    segundosRestantes--;
+    actualizarTimer();
+    if (segundosRestantes <= 0) {
+      clearInterval(timerInterval);
+      abrirModalReporte();
+    }
+  }, 1000);
+}
+
+function abrirModalReporte(solicitudId = '') {
+  document.getElementById('solicitud-id-field').value = solicitudId;
+  document.getElementById('campo-actividad').value = '';
+  document.getElementById('reporte-form').reset();
+  document.getElementById('modal-form-body').style.display = '';
+  document.querySelector('#alarma-modal .modal-footer').style.display = '';
+  modal.show();
+  // Tocar sonido de alerta si el navegador lo permite
+  try { new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAA==').play(); } catch(e) {}
+}
+
+function enviarReporte() {
+  const form = document.getElementById('reporte-form');
+  const actividad = document.getElementById('campo-actividad').value.trim();
+  if (!actividad) {
+    document.getElementById('campo-actividad').classList.add('is-invalid');
+    return;
+  }
+  document.getElementById('btn-enviar-reporte').disabled = true;
+  document.getElementById('btn-enviar-reporte').innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Enviando…';
+
+  const formData = new FormData(form);
+  fetch(form.action, {
+    method: 'POST',
+    headers: { 'X-Requested-With': 'XMLHttpRequest' },
+    body: formData,
+  })
+  .then(r => r.json())
+  .then(data => {
+    if (data.ok) {
+      modal.hide();
+      iniciarTimer();
+      mostrarToast('Reporte enviado correctamente ✓', 'success');
+      agregarReporteLocal(actividad);
+    } else {
+      mostrarToast('Error al enviar el reporte', 'danger');
+    }
+  })
+  .catch(() => mostrarToast('Error de conexión', 'danger'))
+  .finally(() => {
+    document.getElementById('btn-enviar-reporte').disabled = false;
+    document.getElementById('btn-enviar-reporte').innerHTML = '<i class="bi bi-send me-2"></i>Enviar reporte';
+  });
+}
+
+function mostrarToast(msg, tipo) {
+  const wrap = document.querySelector('.toast-container') || (() => {
+    const d = document.createElement('div');
+    d.className = 'toast-container position-fixed top-0 end-0 p-3';
+    d.style.zIndex = 9999;
+    document.body.appendChild(d);
+    return d;
+  })();
+  const t = document.createElement('div');
+  t.className = `toast align-items-center text-bg-${tipo} border-0 show`;
+  t.innerHTML = `<div class="d-flex"><div class="toast-body fw-semibold">${msg}</div><button class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button></div>`;
+  wrap.appendChild(t);
+  setTimeout(() => t.remove(), 4000);
+}
+
+function agregarReporteLocal(actividad) {
+  const lista = document.querySelector('.d-flex.flex-column.gap-3');
+  if (!lista) return;
+  const ahora = new Date();
+  const item = document.createElement('div');
+  item.className = 'reporte-item p-3 rounded-3 border border-success-subtle bg-success-subtle';
+  item.innerHTML = `
+    <div class="d-flex justify-content-between align-items-start mb-2">
+      <span class="small text-muted">
+        <i class="bi bi-calendar3 me-1"></i>${ahora.toLocaleDateString('es-MX')}
+        <i class="bi bi-clock ms-2 me-1"></i>${ahora.toLocaleTimeString('es-MX',{hour:'2-digit',minute:'2-digit'})}
+      </span>
+      <span class="badge bg-warning-subtle text-warning-emphasis">Pendiente revisión</span>
+    </div>
+    <p class="mb-0 fw-semibold small">${actividad.substring(0,120)}</p>`;
+  lista.insertBefore(item, lista.firstChild);
+}
+
+// ═══════════════════════════════════════════════════════════
+//  WEBSOCKET — recibir solicitudes del admin
+// ═══════════════════════════════════════════════════════════
+const wsProto = location.protocol === 'https:' ? 'wss' : 'ws';
+const ws = new WebSocket(`${wsProto}://${location.host}/ws/monitor/`);
+
+ws.onopen = () => {
+  document.getElementById('ws-dot').classList.add('on');
+  document.getElementById('ws-label').textContent = 'Conectado';
+};
+ws.onclose = () => {
+  document.getElementById('ws-dot').classList.remove('on');
+  document.getElementById('ws-label').textContent = 'Sin conexión';
+};
+ws.onmessage = (e) => {
+  const data = JSON.parse(e.data);
+  if (data.tipo === 'solicitud') {
+    // Admin solicitó reporte manualmente → abrir modal inmediatamente
+    clearInterval(timerInterval);
+    abrirModalReporte(data.solicitud_id);
+  }
+};
+
+// Arrancar el temporizador al cargar la página
+iniciarTimer();
+</script>
+{% endblock %}

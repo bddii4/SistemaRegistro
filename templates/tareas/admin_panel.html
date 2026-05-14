@@ -1,0 +1,189 @@
+{% extends "tareas/base_admin.html" %}
+{% block title %}Dashboard Admin — Regintra{% endblock %}
+
+{% block admin_content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <div>
+    <h4 class="fw-bold mb-0">Dashboard</h4>
+    <p class="text-muted small mb-0">Panel de control — {{ request.user.get_full_name|default:request.user.username }}</p>
+  </div>
+  <button class="btn btn-primary" onclick="triggerTodos()">
+    <i class="bi bi-lightning-charge me-2"></i>Solicitar reporte ahora
+  </button>
+</div>
+
+<!-- Stats -->
+<div class="row g-3 mb-4">
+  <div class="col-sm-6 col-xl-3">
+    <div class="stat-card card border-0 shadow-sm">
+      <div class="card-body">
+        <div class="d-flex align-items-center justify-content-between">
+          <div>
+            <p class="stat-label">Total empleados</p>
+            <h3 class="stat-value mb-0">{{ total_usuarios }}</h3>
+          </div>
+          <div class="stat-icon bg-primary-subtle text-primary"><i class="bi bi-people-fill"></i></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="col-sm-6 col-xl-3">
+    <div class="stat-card card border-0 shadow-sm">
+      <div class="card-body">
+        <div class="d-flex align-items-center justify-content-between">
+          <div>
+            <p class="stat-label">Total reportes</p>
+            <h3 class="stat-value mb-0">{{ total_reportes }}</h3>
+          </div>
+          <div class="stat-icon bg-success-subtle text-success"><i class="bi bi-file-text-fill"></i></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="col-sm-6 col-xl-3">
+    <div class="stat-card card border-0 shadow-sm">
+      <div class="card-body">
+        <div class="d-flex align-items-center justify-content-between">
+          <div>
+            <p class="stat-label">Reportes hoy</p>
+            <h3 class="stat-value mb-0">{{ reportes_hoy }}</h3>
+          </div>
+          <div class="stat-icon bg-warning-subtle text-warning"><i class="bi bi-calendar-check-fill"></i></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="col-sm-6 col-xl-3">
+    <div class="stat-card card border-0 shadow-sm">
+      <div class="card-body">
+        <div class="d-flex align-items-center justify-content-between">
+          <div>
+            <p class="stat-label">Usuarios activos</p>
+            <h3 class="stat-value mb-0">{{ usuarios_activos }}</h3>
+          </div>
+          <div class="stat-icon bg-info-subtle text-info"><i class="bi bi-person-check-fill"></i></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Últimos reportes + Feed WS -->
+<div class="row g-4">
+  <div class="col-lg-7">
+    <div class="card border-0 shadow-sm">
+      <div class="card-header bg-transparent border-0 d-flex justify-content-between align-items-center">
+        <h6 class="fw-bold mb-0"><i class="bi bi-journal-text me-2 text-primary"></i>Últimos reportes</h6>
+        <a href="{% url 'lista_reportes' %}" class="btn btn-sm btn-outline-primary">Ver todos</a>
+      </div>
+      <div class="card-body p-0">
+        <div class="list-group list-group-flush">
+          {% for r in ultimos_reportes %}
+          <a href="{% url 'detalle_reporte' r.pk %}" class="list-group-item list-group-item-action px-4 py-3">
+            <div class="d-flex justify-content-between align-items-start">
+              <div>
+                <div class="fw-semibold small">{{ r.usuario.get_full_name|default:r.usuario.username }}</div>
+                <div class="text-muted small">{{ r.actividad|truncatechars:70 }}</div>
+              </div>
+              <div class="text-end flex-shrink-0 ms-3">
+                <div class="text-muted small">{{ r.creado_en|date:"H:i" }}</div>
+                <span class="badge {% if r.estado == 'revisado' %}bg-success-subtle text-success{% else %}bg-warning-subtle text-warning-emphasis{% endif %} mt-1">
+                  {{ r.get_estado_display }}
+                </span>
+              </div>
+            </div>
+          </a>
+          {% empty %}
+          <div class="text-center py-5 text-muted">
+            <i class="bi bi-inbox fs-2 d-block mb-2 opacity-25"></i>
+            <p class="small">Sin reportes aún</p>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-lg-5">
+    <div class="card border-0 shadow-sm">
+      <div class="card-header bg-transparent border-0 d-flex justify-content-between align-items-center">
+        <h6 class="fw-bold mb-0"><i class="bi bi-broadcast me-2 text-success"></i>Tiempo real</h6>
+        <span class="badge bg-success-subtle text-success" id="ws-admin-badge">
+          <span class="ws-dot me-1" id="ws-admin-dot"></span>En vivo
+        </span>
+      </div>
+      <div class="card-body">
+        <div id="feed-live" class="d-flex flex-column gap-2" style="max-height:380px;overflow-y:auto">
+          <div class="text-center py-4 text-muted small" id="feed-empty">
+            <i class="bi bi-satellite fs-2 d-block mb-2 opacity-25"></i>
+            Los nuevos reportes aparecen aquí en tiempo real
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function getCookie(name) {
+  return document.cookie.split(';').map(c=>c.trim())
+    .find(c=>c.startsWith(name+'='))?.split('=')[1] || '';
+}
+
+function triggerTodos() {
+  fetch('/api/trigger/', {
+    method: 'POST',
+    headers: {'Content-Type':'application/json','X-CSRFToken':getCookie('csrftoken')},
+    body: JSON.stringify({}),
+  }).then(r=>r.json()).then(d => {
+    if(d.ok) mostrarToastAdmin(`Solicitud enviada a ${d.notificados} empleados ✓`,'success');
+    else mostrarToastAdmin('Error al enviar solicitud','danger');
+  });
+}
+
+function mostrarToastAdmin(msg, tipo) {
+  const t = document.createElement('div');
+  t.className = `toast align-items-center text-bg-${tipo} border-0 show position-fixed bottom-0 end-0 m-3`;
+  t.style.zIndex = 9999;
+  t.innerHTML = `<div class="d-flex"><div class="toast-body fw-semibold">${msg}</div><button class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button></div>`;
+  document.body.appendChild(t);
+  setTimeout(() => t.remove(), 4000);
+}
+
+// WebSocket admin
+const wsProto = location.protocol === 'https:' ? 'wss' : 'ws';
+const ws = new WebSocket(`${wsProto}://${location.host}/ws/monitor/`);
+
+ws.onopen = () => {
+  document.getElementById('ws-admin-dot').classList.add('on');
+};
+ws.onclose = () => {
+  document.getElementById('ws-admin-dot').classList.remove('on');
+  document.getElementById('ws-admin-badge').className = 'badge bg-danger-subtle text-danger';
+};
+ws.onmessage = (e) => {
+  const data = JSON.parse(e.data);
+  if (data.tipo === 'nuevo_reporte') {
+    agregarFeed(data.payload);
+  }
+};
+
+function agregarFeed(p) {
+  document.getElementById('feed-empty')?.remove();
+  const feed = document.getElementById('feed-live');
+  const item = document.createElement('div');
+  item.className = 'p-3 rounded-3 border border-success-subtle bg-success-subtle';
+  item.style.animation = 'fadeIn .3s ease';
+  item.innerHTML = `
+    <div class="d-flex justify-content-between align-items-start">
+      <span class="fw-semibold small">${p.empleado}</span>
+      <span class="text-muted small">${p.timestamp}</span>
+    </div>
+    <p class="mb-0 small text-muted mt-1">${p.actividad}</p>`;
+  feed.insertBefore(item, feed.firstChild);
+}
+</script>
+{% endblock %}

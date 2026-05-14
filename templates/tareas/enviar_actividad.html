@@ -1,0 +1,47 @@
+{% extends 'tareas/base.html' %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert alert-success">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+
+            <div class="card shadow-lg border-0">
+                <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">Reporte Obligatorio</h5>
+                    <span id="timer" class="badge bg-warning text-dark">30:00</span>
+                </div>
+                <div class="card-body p-4">
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Tarea Actual:</label>
+                            {{ form.titulo }}
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Avance realizado:</label>
+                            {{ form.descripcion }}
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100 btn-lg">Enviar Reporte Ahora</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    let seconds = 1800; // 30 minutos
+    setInterval(() => {
+        if (seconds <= 0) return;
+        seconds--;
+        let m = Math.floor(seconds / 60);
+        let s = seconds % 60;
+        document.getElementById('timer').innerText = `${m}:${s < 10 ? '0'+s : s}`;
+    }, 1000);
+</script>
+{% endblock %}
