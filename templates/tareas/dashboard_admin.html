@@ -128,48 +128,32 @@
 
 {% block extra_js %}
 <script>
-function getCookie(name) {
-  return document.cookie.split(';').map(c=>c.trim())
-    .find(c=>c.startsWith(name+'='))?.split('=')[1] || '';
-}
-
 function triggerTodos() {
   fetch('/api/trigger/', {
     method: 'POST',
-    headers: {'Content-Type':'application/json','X-CSRFToken':getCookie('csrftoken')},
+    headers: {'Content-Type':'application/json','X-CSRFToken': getCSRF()},
     body: JSON.stringify({}),
   }).then(r=>r.json()).then(d => {
-    if(d.ok) mostrarToastAdmin(`Solicitud enviada a ${d.notificados} empleados ✓`,'success');
-    else mostrarToastAdmin('Error al enviar solicitud','danger');
+    if (d.ok) regintraToast(`Solicitud enviada a ${d.notificados} empleados ✓`, 'success');
+    else regintraToast('Error al enviar solicitud', 'danger');
   });
 }
 
-function mostrarToastAdmin(msg, tipo) {
-  const t = document.createElement('div');
-  t.className = `toast align-items-center text-bg-${tipo} border-0 show position-fixed bottom-0 end-0 m-3`;
-  t.style.zIndex = 9999;
-  t.innerHTML = `<div class="d-flex"><div class="toast-body fw-semibold">${msg}</div><button class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button></div>`;
-  document.body.appendChild(t);
-  setTimeout(() => t.remove(), 4000);
-}
-
-// WebSocket admin
-const wsProto = location.protocol === 'https:' ? 'wss' : 'ws';
-const ws = new WebSocket(`${wsProto}://${location.host}/ws/monitor/`);
-
-ws.onopen = () => {
-  document.getElementById('ws-admin-dot').classList.add('on');
-};
-ws.onclose = () => {
-  document.getElementById('ws-admin-dot').classList.remove('on');
-  document.getElementById('ws-admin-badge').className = 'badge bg-danger-subtle text-danger';
-};
-ws.onmessage = (e) => {
-  const data = JSON.parse(e.data);
-  if (data.tipo === 'nuevo_reporte') {
+// WebSocket admin — usando RegintraWS de notificaciones.js
+const rgWS = new RegintraWS({
+  onConectado() {
+    document.getElementById('ws-admin-dot').classList.add('on');
+    document.getElementById('ws-admin-badge').className = 'badge bg-success-subtle text-success';
+  },
+  onDesconectado() {
+    document.getElementById('ws-admin-dot').classList.remove('on');
+    document.getElementById('ws-admin-badge').className = 'badge bg-danger-subtle text-danger';
+  },
+  onNuevoReporte(data) {
     agregarFeed(data.payload);
-  }
-};
+    regintraToast(`Nuevo reporte de ${data.payload.empleado}`, 'info');
+  },
+});
 
 function agregarFeed(p) {
   document.getElementById('feed-empty')?.remove();

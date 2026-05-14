@@ -286,27 +286,23 @@ function agregarReporteLocal(actividad) {
 }
 
 // ═══════════════════════════════════════════════════════════
-//  WEBSOCKET — recibir solicitudes del admin
+//  WEBSOCKET — usando RegintraWS de notificaciones.js
 // ═══════════════════════════════════════════════════════════
-const wsProto = location.protocol === 'https:' ? 'wss' : 'ws';
-const ws = new WebSocket(`${wsProto}://${location.host}/ws/monitor/`);
-
-ws.onopen = () => {
-  document.getElementById('ws-dot').classList.add('on');
-  document.getElementById('ws-label').textContent = 'Conectado';
-};
-ws.onclose = () => {
-  document.getElementById('ws-dot').classList.remove('on');
-  document.getElementById('ws-label').textContent = 'Sin conexión';
-};
-ws.onmessage = (e) => {
-  const data = JSON.parse(e.data);
-  if (data.tipo === 'solicitud') {
-    // Admin solicitó reporte manualmente → abrir modal inmediatamente
+const rgWS = new RegintraWS({
+  onConectado() {
+    document.getElementById('ws-dot').classList.add('on');
+    document.getElementById('ws-label').textContent = 'Conectado';
+  },
+  onDesconectado() {
+    document.getElementById('ws-dot').classList.remove('on');
+    document.getElementById('ws-label').textContent = 'Reconectando…';
+  },
+  onSolicitud(data) {
+    // Admin solicitó reporte → interrumpir timer y abrir modal
     clearInterval(timerInterval);
     abrirModalReporte(data.solicitud_id);
-  }
-};
+  },
+});
 
 // Arrancar el temporizador al cargar la página
 iniciarTimer();

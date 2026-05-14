@@ -22,6 +22,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'django_celery_beat',
     'tareas',
+    'usuarios',
 ]
 
 MIDDLEWARE = [
@@ -54,16 +55,26 @@ TEMPLATES = [
 
 ASGI_APPLICATION = 'core.asgi.application'
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': os.environ.get('POSTGRES_DB', 'regintra_db'),
-        'USER': os.environ.get('POSTGRES_USER', 'regintra_user'),
-        'PASSWORD': os.environ.get('POSTGRES_PASSWORD', 'regintra_pass'),
-        'HOST': 'db',
-        'PORT': '5432',
+import socket
+try:
+    socket.gethostbyname('db')
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': os.environ.get('POSTGRES_DB', 'regintra_db'),
+            'USER': os.environ.get('POSTGRES_USER', 'regintra_user'),
+            'PASSWORD': os.environ.get('POSTGRES_PASSWORD', 'regintra_pass'),
+            'HOST': 'db',
+            'PORT': '5432',
+        }
     }
-}
+except socket.gaierror:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
+        }
+    }
 
 CHANNEL_LAYERS = {
     'default': {

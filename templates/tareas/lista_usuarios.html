@@ -1,0 +1,70 @@
+{% extends "tareas/base_admin.html" %}
+{% block title %}Usuarios — Regintra{% endblock %}
+
+{% block admin_content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <div>
+    <h4 class="fw-bold mb-0">Usuarios</h4>
+    <p class="text-muted small mb-0">{{ usuarios.count }} empleado{{ usuarios.count|pluralize }} registrado{{ usuarios.count|pluralize }}</p>
+  </div>
+  <a href="{% url 'crear_usuario' %}" class="btn btn-primary">
+    <i class="bi bi-person-plus me-2"></i>Crear usuario
+  </a>
+</div>
+
+<div class="card border-0 shadow-sm">
+  <div class="table-responsive">
+    <table class="table table-hover align-middle mb-0">
+      <thead class="table-light">
+        <tr>
+          <th class="px-4">Nombre</th>
+          <th>Usuario</th>
+          <th>Email</th>
+          <th>Reportes</th>
+          <th>Estado</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for u in usuarios %}
+        <tr>
+          <td class="px-4">
+            <div class="fw-semibold small">{{ u.get_full_name|default:"—" }}</div>
+          </td>
+          <td><span class="small text-muted">@{{ u.username }}</span></td>
+          <td><span class="small text-muted">{{ u.email|default:"—" }}</span></td>
+          <td><span class="badge bg-secondary-subtle text-secondary">{{ u.num_reportes }}</span></td>
+          <td>
+            {% if u.is_active %}
+            <span class="badge bg-success-subtle text-success">Activo</span>
+            {% else %}
+            <span class="badge bg-danger-subtle text-danger">Inactivo</span>
+            {% endif %}
+          </td>
+          <td>
+            <div class="d-flex gap-1">
+              <a href="{% url 'editar_usuario' u.pk %}" class="btn btn-sm btn-outline-primary" title="Editar">
+                <i class="bi bi-pencil"></i>
+              </a>
+              <a href="{% url 'toggle_usuario' u.pk %}" class="btn btn-sm btn-outline-{{ u.is_active|yesno:'warning,success' }}" title="{% if u.is_active %}Desactivar{% else %}Activar{% endif %}">
+                <i class="bi bi-{{ u.is_active|yesno:'pause,play' }}-fill"></i>
+              </a>
+              <a href="{% url 'eliminar_usuario' u.pk %}" class="btn btn-sm btn-outline-danger" title="Eliminar">
+                <i class="bi bi-trash"></i>
+              </a>
+            </div>
+          </td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="6" class="text-center py-5 text-muted">
+            <i class="bi bi-people fs-2 d-block mb-2 opacity-25"></i>
+            No hay empleados registrados
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}
