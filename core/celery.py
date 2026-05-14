@@ -1,4 +1,4 @@
-# Configuración de Celery y programación de tareas automáticas (reportes cada 30min, expirar solicitudes).
+# Configuración de Celery y programación de tareas automáticas (reportes cada 30min, expirar solicitudes)
 import os
 from celery import Celery
 from celery.schedules import crontab
