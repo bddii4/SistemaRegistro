@@ -1,3 +1,4 @@
+// Utilidad compartida: toast flotante, WebSocket con reconexión automática, helper CSRF.
 function regintraToast(mensaje, tipo = 'success', duracion = 4000) {
   let wrap = document.getElementById('rg-toast-wrap');
   if (!wrap) {
