@@ -1,4 +1,4 @@
-# Tareas automáticas de Celery: disparar reportes cada 30min y expirar solicitudes viejas.
+# Tareas automáticas de Celery: disparar reportes cada 30min y expirar solicitudes viejas
 from celery import shared_task
 from django.utils import timezone
 from datetime import timedelta
