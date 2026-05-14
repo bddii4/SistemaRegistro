@@ -1,3 +1,4 @@
+# Registro de la app 'usuarios' (mantenida para compatibilidad con migraciones viejas).
 from django.apps import AppConfig
 
 

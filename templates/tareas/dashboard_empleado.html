@@ -1,13 +1,14 @@
 {% extends "tareas/base.html" %}
-{% block title %}Mi Dashboard — Regintra{% endblock %}
+{% block title %}Mi Dashboard — Sistema de monitoreo{% endblock %}
 {% block body_class %}empleado-layout{% endblock %}
 
 {% block body %}
 
+{% comment %} Dashboard del empleado: timer de 30min, modal de reporte, historial, WebSocket {% endcomment %}
 <!-- Navbar -->
 <nav class="navbar navbar-dark bg-dark-subtle border-bottom px-4">
   <a class="navbar-brand fw-bold" href="#">
-    <i class="bi bi-lightning-charge-fill text-primary me-2"></i>Regintra
+    <i class="bi bi-lightning-charge-fill text-primary me-2"></i>Sistema de monitoreo
   </a>
   <div class="d-flex align-items-center gap-3">
     <span class="text-muted small">
@@ -164,10 +165,7 @@
 
 {% block extra_js %}
 <script>
-// ═══════════════════════════════════════════════════════════
-//  TEMPORIZADOR — 30 minutos
-// ═══════════════════════════════════════════════════════════
-const DURACION = 30 * 60;  // 30 minutos en segundos
+const DURACION = 30 * 60;
 let segundosRestantes = DURACION;
 let timerInterval = null;
 const modal = new bootstrap.Modal(document.getElementById('alarma-modal'));
@@ -214,7 +212,6 @@ function abrirModalReporte(solicitudId = '') {
   document.getElementById('modal-form-body').style.display = '';
   document.querySelector('#alarma-modal .modal-footer').style.display = '';
   modal.show();
-  // Tocar sonido de alerta si el navegador lo permite
   try { new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAA==').play(); } catch(e) {}
 }
 
@@ -239,32 +236,17 @@ function enviarReporte() {
     if (data.ok) {
       modal.hide();
       iniciarTimer();
-      mostrarToast('Reporte enviado correctamente ✓', 'success');
+      regintraToast('Reporte enviado correctamente ✓', 'success');
       agregarReporteLocal(actividad);
     } else {
-      mostrarToast('Error al enviar el reporte', 'danger');
+      regintraToast('Error al enviar el reporte', 'danger');
     }
   })
-  .catch(() => mostrarToast('Error de conexión', 'danger'))
+  .catch(() => regintraToast('Error de conexión', 'danger'))
   .finally(() => {
     document.getElementById('btn-enviar-reporte').disabled = false;
     document.getElementById('btn-enviar-reporte').innerHTML = '<i class="bi bi-send me-2"></i>Enviar reporte';
   });
-}
-
-function mostrarToast(msg, tipo) {
-  const wrap = document.querySelector('.toast-container') || (() => {
-    const d = document.createElement('div');
-    d.className = 'toast-container position-fixed top-0 end-0 p-3';
-    d.style.zIndex = 9999;
-    document.body.appendChild(d);
-    return d;
-  })();
-  const t = document.createElement('div');
-  t.className = `toast align-items-center text-bg-${tipo} border-0 show`;
-  t.innerHTML = `<div class="d-flex"><div class="toast-body fw-semibold">${msg}</div><button class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button></div>`;
-  wrap.appendChild(t);
-  setTimeout(() => t.remove(), 4000);
 }
 
 function agregarReporteLocal(actividad) {
@@ -285,9 +267,6 @@ function agregarReporteLocal(actividad) {
   lista.insertBefore(item, lista.firstChild);
 }
 
-// ═══════════════════════════════════════════════════════════
-//  WEBSOCKET — usando RegintraWS de notificaciones.js
-// ═══════════════════════════════════════════════════════════
 const rgWS = new RegintraWS({
   onConectado() {
     document.getElementById('ws-dot').classList.add('on');
@@ -298,13 +277,11 @@ const rgWS = new RegintraWS({
     document.getElementById('ws-label').textContent = 'Reconectando…';
   },
   onSolicitud(data) {
-    // Admin solicitó reporte → interrumpir timer y abrir modal
     clearInterval(timerInterval);
     abrirModalReporte(data.solicitud_id);
   },
 });
 
-// Arrancar el temporizador al cargar la página
 iniciarTimer();
 </script>
 {% endblock %}

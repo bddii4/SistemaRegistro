@@ -1,3 +1,4 @@
+# WebSocket: conexión en tiempo real entre empleados y admin (solicitudes, notificaciones).
 import json
 from channels.generic.websocket import AsyncWebsocketConsumer
 from channels.db import database_sync_to_async
@@ -28,7 +29,6 @@ class MonitorConsumer(AsyncWebsocketConsumer):
         data = json.loads(text_data)
 
         if data.get('tipo') == 'reporte_ws':
-            # El empleado manda su reporte por WebSocket (alternativa al form)
             reporte = await self.guardar_reporte(data)
             await self.channel_layer.group_send('admins', {
                 'type': 'nuevo_reporte',
@@ -41,14 +41,12 @@ class MonitorConsumer(AsyncWebsocketConsumer):
             await self.send(json.dumps({'tipo': 'confirmacion', 'mensaje': 'Reporte guardado'}))
 
     async def solicitud_reporte(self, event):
-        """Llega del admin o Celery → activa el modal en el empleado."""
         await self.send(json.dumps({
             'tipo': 'solicitud',
             'solicitud_id': event['solicitud_id'],
         }))
 
     async def nuevo_reporte(self, event):
-        """Admin recibe notificación de nuevo reporte en tiempo real."""
         await self.send(json.dumps({
             'tipo': 'nuevo_reporte',
             'payload': event['payload'],

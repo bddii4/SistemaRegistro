@@ -1,0 +1,1 @@
+# Migraciones de usuarios (actualmente vacío — los modelos están en tareas).

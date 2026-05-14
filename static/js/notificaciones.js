@@ -1,10 +1,3 @@
-/**
- * notificaciones.js
- * Utilidad compartida para WebSocket y toasts en Regintra.
- * Se incluye desde base.html y lo usan dashboard_empleado y dashboard_admin.
- */
-
-// ── Toast universal ────────────────────────────────────────────────────────
 function regintraToast(mensaje, tipo = 'success', duracion = 4000) {
   let wrap = document.getElementById('rg-toast-wrap');
   if (!wrap) {
@@ -29,7 +22,6 @@ function regintraToast(mensaje, tipo = 'success', duracion = 4000) {
   }, duracion);
 }
 
-// ── Conexión WebSocket con reconexión automática ───────────────────────────
 class RegintraWS {
   constructor({ onSolicitud, onNuevoReporte, onConectado, onDesconectado } = {}) {
     this.onSolicitud    = onSolicitud    || (() => {});
@@ -51,7 +43,6 @@ class RegintraWS {
 
     this.ws.onclose = () => {
       this.onDesconectado();
-      // Reconexión exponencial: 2s, 4s, 8s … máx 30s
       const delay = Math.min(2000 * Math.pow(2, this.intentos), 30000);
       this.intentos++;
       setTimeout(() => this.connect(), delay);
@@ -75,7 +66,6 @@ class RegintraWS {
   }
 }
 
-// ── CSRF helper ───────────────────────────────────────────────────────────
 function getCSRF() {
   return document.cookie.split(';').map(c => c.trim())
     .find(c => c.startsWith('csrftoken='))?.split('=')[1] || '';

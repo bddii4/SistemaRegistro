@@ -1,3 +1,4 @@
+# Registro de la app 'tareas' en Django.
 from django.apps import AppConfig
 
 

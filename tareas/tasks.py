@@ -1,3 +1,4 @@
+# Tareas automáticas de Celery: disparar reportes cada 30min y expirar solicitudes viejas.
 from celery import shared_task
 from django.utils import timezone
 from datetime import timedelta
@@ -7,7 +8,6 @@ from asgiref.sync import async_to_sync
 
 @shared_task
 def disparar_reporte_automatico():
-    """Dispara solicitud de reporte a todos los empleados cada 30 min."""
     from tareas.models import Usuario, SolicitudReporte
 
     channel_layer = get_channel_layer()
@@ -30,7 +30,6 @@ def disparar_reporte_automatico():
 
 @shared_task
 def expirar_solicitudes_viejas():
-    """Marca como expiradas las solicitudes pendientes que pasaron su límite."""
     from tareas.models import SolicitudReporte
 
     n = SolicitudReporte.objects.filter(

@@ -1,3 +1,4 @@
+# Configuración general del proyecto: apps, BD, estáticos, WS, celery.
 import os
 from pathlib import Path
 from dotenv import load_dotenv
@@ -85,7 +86,6 @@ CHANNEL_LAYERS = {
 
 AUTH_USER_MODEL = 'tareas.Usuario'
 
-# Celery
 CELERY_BROKER_URL = os.environ.get('REDIS_URL', 'redis://redis:6379/0')
 CELERY_RESULT_BACKEND = os.environ.get('REDIS_URL', 'redis://redis:6379/0')
 CELERY_TIMEZONE = 'America/Mexico_City'
@@ -101,12 +101,10 @@ STATICFILES_DIRS = [BASE_DIR / 'static']
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-# Auth
 LOGIN_URL = '/login/'
 LOGIN_REDIRECT_URL = '/'
 LOGOUT_REDIRECT_URL = '/login/'
 
-# Mensajes
 from django.contrib.messages import constants as messages
 MESSAGE_TAGS = {
     messages.DEBUG: 'secondary',

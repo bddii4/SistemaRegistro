@@ -1,7 +1,4 @@
-/* ═══════════════════════════════════════════════════════════
-   REGINTRA — CSS Principal
-   ═══════════════════════════════════════════════════════════ */
-
+/* Estilos del sistema: auth (oscuro), sidebar admin, dashboard empleado, timer, modal, WS indicator */
 :root {
   --sidebar-width: 240px;
   --sidebar-bg: #0f172a;
@@ -10,7 +7,6 @@
   --radius: .75rem;
 }
 
-/* ── Auth pages ──────────────────────────────────────────── */
 .auth-page {
   background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
   min-height: 100vh;
@@ -50,13 +46,11 @@
   margin: 0 auto;
 }
 
-.auth-card h1,
-.auth-card h3 { color: #f1f5f9; }
+.auth-card h1, .auth-card h3 { color: #f1f5f9; }
 .auth-card .text-muted { color: #64748b !important; }
 .auth-card .form-label { color: #94a3b8; }
 
-.auth-card .form-control,
-.auth-card .input-group-text {
+.auth-card .form-control, .auth-card .input-group-text {
   background: #0f172a;
   border-color: #334155;
   color: #f1f5f9;
@@ -70,7 +64,6 @@
 .auth-card .form-control::placeholder { color: #475569; }
 .auth-card .input-group-text { color: #64748b; }
 
-/* ── Admin layout ────────────────────────────────────────── */
 .admin-layout { background: #f8fafc; }
 
 .sidebar {
@@ -112,25 +105,15 @@
   flex-shrink: 0;
 }
 
-/* ── Stat cards ──────────────────────────────────────────── */
 .stat-card { border-radius: var(--radius); transition: transform .15s; }
 .stat-card:hover { transform: translateY(-2px); }
 .stat-label { font-size: .75rem; font-weight: 600; text-transform: uppercase; letter-spacing: .06em; color: #6b7280; margin-bottom: .25rem; }
 .stat-value { font-size: 2rem; font-weight: 700; color: #0f172a; }
 .stat-icon { width: 52px; height: 52px; border-radius: .75rem; display: flex; align-items: center; justify-content: center; font-size: 1.4rem; }
 
-/* ── Employee dashboard ──────────────────────────────────── */
-.empleado-layout {
-  background: #f1f5f9;
-  min-height: 100vh;
-}
+.empleado-layout { background: #f1f5f9; min-height: 100vh; }
+.empleado-layout .navbar { background: #1e293b !important; border-color: rgba(255,255,255,.08) !important; }
 
-.empleado-layout .navbar {
-  background: #1e293b !important;
-  border-color: rgba(255,255,255,.08) !important;
-}
-
-/* Timer */
 .timer-display {
   font-size: 5rem;
   font-weight: 800;
@@ -165,31 +148,12 @@
   background: linear-gradient(90deg, #dc2626, #f97316);
 }
 
-/* Report item */
-.reporte-item {
-  border-color: #e2e8f0 !important;
-  background: #fff;
-  transition: border-color .15s;
-}
+.reporte-item { border-color: #e2e8f0 !important; background: #fff; transition: border-color .15s; }
 .reporte-item:hover { border-color: #bfdbfe !important; }
 
-/* ── Alarma Modal ────────────────────────────────────────── */
 .alarma-header { background: linear-gradient(135deg, #eff6ff 0%, #f0fdf4 100%); }
-
-.alarma-icon-wrap {
-  width: 72px;
-  height: 72px;
-  background: #dbeafe;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-.alarma-icon {
-  font-size: 2rem;
-  color: #2563eb;
-  animation: ring 1.5s ease-in-out infinite;
-}
+.alarma-icon-wrap { width: 72px; height: 72px; background: #dbeafe; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+.alarma-icon { font-size: 2rem; color: #2563eb; animation: ring 1.5s ease-in-out infinite; }
 @keyframes ring {
   0%, 100% { transform: rotate(0deg); }
   10% { transform: rotate(-15deg); }
@@ -199,27 +163,16 @@
   50% { transform: rotate(0deg); }
 }
 
-/* ── WS Indicator ────────────────────────────────────────── */
 .ws-indicator {
-  position: fixed;
-  bottom: 1rem;
-  left: 1rem;
-  display: flex;
-  align-items: center;
-  gap: .4rem;
-  font-size: .75rem;
-  color: #94a3b8;
-  background: rgba(15,23,42,.8);
-  padding: .3rem .7rem;
-  border-radius: 99px;
-  backdrop-filter: blur(4px);
+  position: fixed; bottom: 1rem; left: 1rem;
+  display: flex; align-items: center; gap: .4rem;
+  font-size: .75rem; color: #94a3b8;
+  background: rgba(15,23,42,.8); padding: .3rem .7rem;
+  border-radius: 99px; backdrop-filter: blur(4px);
 }
 .ws-dot {
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background: #6b7280;
-  display: inline-block;
+  width: 7px; height: 7px; border-radius: 50%;
+  background: #6b7280; display: inline-block;
 }
 .ws-dot.on {
   background: #22c55e;
@@ -231,7 +184,6 @@
   50% { box-shadow: 0 0 0 6px rgba(34,197,94,.1); }
 }
 
-/* ── General utilities ───────────────────────────────────── */
 .card { border-radius: var(--radius); }
 .letter-spacing { letter-spacing: .08em; }
 
@@ -240,5 +192,4 @@
   to { opacity: 1; transform: translateY(0); }
 }
 
-/* Navbar dark */
-.navbar-dark.bg-dark-subtle { background-color: #1e293b !important; }
+.navbar-dark.bg-dark-subtle { background-color: #1e293b !important; } 

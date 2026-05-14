@@ -1,0 +1,1 @@
+# Migraciones de la base de datos (generadas automáticamente por Django).

@@ -1,0 +1,1 @@
+# App secundaria (actualmente solo existe para compatibilidad).

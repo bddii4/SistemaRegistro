@@ -1,12 +1,12 @@
+# Vistas: autenticación, dashboard empleado, panel admin, CRUD usuarios, API y exportación CSV.
 from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib.auth import login, authenticate
+from django.contrib.auth import login
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.http import JsonResponse, HttpResponse
 from django.utils import timezone
 from django.db.models import Count
 from django.views.decorators.http import require_POST
-from django.views.decorators.csrf import csrf_exempt
 
 from channels.layers import get_channel_layer
 from asgiref.sync import async_to_sync
@@ -17,10 +17,7 @@ from .models import Usuario, Reporte, SolicitudReporte
 from .forms import RegistroForm, ReporteForm, UsuarioAdminForm
 
 
-# ─── Utilidades ───────────────────────────────────────────────────────────────
-
 def solo_admin(func):
-    """Decorador: redirige si el usuario no es admin."""
     def wrapper(request, *args, **kwargs):
         if not request.user.is_authenticated or request.user.rol != 'admin':
             return redirect('dashboard_empleado')
@@ -28,8 +25,6 @@ def solo_admin(func):
     wrapper.__name__ = func.__name__
     return wrapper
 
-
-# ─── Autenticación ────────────────────────────────────────────────────────────
 
 def registro(request):
     if request.user.is_authenticated:
@@ -40,9 +35,8 @@ def registro(request):
             user = form.save(commit=False)
             user.rol = 'empleado'
             user.save()
-            login(request, user)
-            messages.success(request, f'¡Bienvenido, {user.first_name}! Tu cuenta fue creada.')
-            return redirect('dashboard_empleado')
+            messages.success(request, 'Cuenta creada correctamente. Ahora inicia sesión.')
+            return redirect('login')
     else:
         form = RegistroForm()
     return render(request, 'tareas/registro.html', {'form': form})
@@ -54,8 +48,6 @@ def home(request):
         return redirect('dashboard_admin')
     return redirect('dashboard_empleado')
 
-
-# ─── Dashboard Empleado ───────────────────────────────────────────────────────
 
 @login_required
 def dashboard_empleado(request):
@@ -81,7 +73,6 @@ def dashboard_empleado(request):
 @login_required
 @require_POST
 def enviar_reporte(request):
-    """Recibe el reporte del formulario (POST normal, sin WS obligatorio)."""
     form = ReporteForm(request.POST)
     if form.is_valid():
         reporte = form.save(commit=False)
@@ -89,7 +80,6 @@ def enviar_reporte(request):
         reporte.ip_origen = request.META.get('REMOTE_ADDR')
         reporte.save()
 
-        # Notifica al panel admin via WebSocket
         channel_layer = get_channel_layer()
         async_to_sync(channel_layer.group_send)('admins', {
             'type': 'nuevo_reporte',
@@ -111,8 +101,6 @@ def enviar_reporte(request):
     return redirect('dashboard_empleado')
 
 
-# ─── Dashboard Admin ──────────────────────────────────────────────────────────
-
 @login_required
 @solo_admin
 def dashboard_admin(request):
@@ -132,14 +120,11 @@ def dashboard_admin(request):
     return render(request, 'tareas/dashboard_admin.html', ctx)
 
 
-# ─── Gestión de Reportes ──────────────────────────────────────────────────────
-
 @login_required
 @solo_admin
 def lista_reportes(request):
     reportes = Reporte.objects.select_related('usuario').all()
 
-    # Filtros
     usuario_id = request.GET.get('usuario')
     fecha = request.GET.get('fecha')
     if usuario_id:
@@ -174,7 +159,7 @@ def detalle_reporte(request, pk):
 def exportar_reportes_csv(request):
     response = HttpResponse(content_type='text/csv; charset=utf-8')
     response['Content-Disposition'] = 'attachment; filename="reportes_regintra.csv"'
-    response.write('\ufeff')  # BOM para Excel
+    response.write('\ufeff')
 
     writer = csv.writer(response)
     writer.writerow(['Usuario', 'Nombre completo', 'Fecha', 'Hora', 'Actividad', 'Avances', 'Observaciones', 'Estado'])
@@ -192,8 +177,6 @@ def exportar_reportes_csv(request):
         ])
     return response
 
-
-# ─── Gestión de Usuarios ──────────────────────────────────────────────────────
 
 @login_required
 @solo_admin
@@ -257,8 +240,6 @@ def toggle_usuario(request, pk):
     return redirect('lista_usuarios')
 
 
-# ─── API: trigger manual del admin ────────────────────────────────────────────
-
 @login_required
 @require_POST
 def api_trigger_reporte(request):
@@ -291,8 +272,6 @@ def api_trigger_reporte(request):
 
     return JsonResponse({'ok': True, 'notificados': notificados})
 
-
-# ─── API: estadísticas ────────────────────────────────────────────────────────
 
 @login_required
 @solo_admin

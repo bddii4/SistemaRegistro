@@ -1,6 +1,9 @@
+{% comment %} Versión alternativa del formulario de reporte (actualmente no se usa desde ninguna vista) {% endcomment %}
 {% extends 'tareas/base.html' %}
 
-{% block content %}
+{% block title %}Reporte Obligatorio — Sistema de monitoreo{% endblock %}
+
+{% block body %}
 <div class="container mt-5">
     <div class="row justify-content-center">
         <div class="col-md-6">
@@ -16,15 +19,19 @@
                     <span id="timer" class="badge bg-warning text-dark">30:00</span>
                 </div>
                 <div class="card-body p-4">
-                    <form method="post">
+                    <form method="post" action="{% url 'enviar_reporte' %}">
                         {% csrf_token %}
                         <div class="mb-3">
-                            <label class="form-label fw-bold">Tarea Actual:</label>
-                            {{ form.titulo }}
+                            <label class="form-label fw-bold">Actividad actual:</label>
+                            {{ form.actividad }}
                         </div>
                         <div class="mb-3">
-                            <label class="form-label fw-bold">Avance realizado:</label>
-                            {{ form.descripcion }}
+                            <label class="form-label fw-bold">Avances:</label>
+                            {{ form.avances }}
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Observaciones:</label>
+                            {{ form.observaciones }}
                         </div>
                         <button type="submit" class="btn btn-primary w-100 btn-lg">Enviar Reporte Ahora</button>
                     </form>
@@ -35,7 +42,7 @@
 </div>
 
 <script>
-    let seconds = 1800; // 30 minutos
+    let seconds = 1800;
     setInterval(() => {
         if (seconds <= 0) return;
         seconds--;

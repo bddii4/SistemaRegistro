@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+# Punto de entrada principal. Ejecuta comandos de Django (runserver, migrate, etc).
 import os, sys
 
 def main():
