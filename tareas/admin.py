@@ -1,4 +1,4 @@
-# Registro de modelos en el panel admin de Django (/admin/).
+# Registro de modelos en el panel admin de Django (/admin/)
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 from .models import Usuario, Reporte, SolicitudReporte
