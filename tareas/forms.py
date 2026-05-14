@@ -1,4 +1,4 @@
-# Formularios: registro de usuario, envío de reporte, edición de usuario por admin.
+# Formularios: registro de usuario, envío de reporte, edición de usuario por admin
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from .models import Usuario, Reporte
