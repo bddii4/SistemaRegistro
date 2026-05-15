@@ -1,4 +1,3 @@
-# Mapeo de URLs a vistas: dashboard, panel admin, reportes, usuarios, API
 from django.urls import path
 from . import views
 

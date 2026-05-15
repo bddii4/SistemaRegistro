@@ -1,6 +1,5 @@
-# Vistas: autenticación, dashboard empleado, panel admin, CRUD usuarios, API y exportación CSV
 from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib.auth import login
+from django.contrib.auth import login, authenticate
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.http import JsonResponse, HttpResponse
@@ -35,8 +34,9 @@ def registro(request):
             user = form.save(commit=False)
             user.rol = 'empleado'
             user.save()
-            messages.success(request, 'Cuenta creada correctamente. Ahora inicia sesión.')
-            return redirect('login')
+            login(request, user)
+            messages.success(request, f'¡Bienvenido, {user.first_name}! Tu cuenta fue creada.')
+            return redirect('dashboard_empleado')
     else:
         form = RegistroForm()
     return render(request, 'tareas/registro.html', {'form': form})

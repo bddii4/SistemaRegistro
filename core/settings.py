@@ -1,4 +1,3 @@
-# Configuración general del proyecto: apps, BD, estáticos, WS, celery
 import os
 from pathlib import Path
 from dotenv import load_dotenv

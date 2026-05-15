@@ -1,4 +1,3 @@
-/* Estilos del sistema: auth (oscuro), sidebar admin, dashboard empleado, timer, modal, WS indicator */
 :root {
   --sidebar-width: 240px;
   --sidebar-bg: #0f172a;
@@ -192,4 +191,4 @@
   to { opacity: 1; transform: translateY(0); }
 }
 
-.navbar-dark.bg-dark-subtle { background-color: #1e293b !important; } 
+.navbar-dark.bg-dark-subtle { background-color: #1e293b !important; }
