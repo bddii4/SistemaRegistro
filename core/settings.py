@@ -76,12 +76,21 @@ except socket.gaierror:
         }
     }
 
-CHANNEL_LAYERS = {
-    'default': {
-        'BACKEND': 'channels_redis.core.RedisChannelLayer',
-        'CONFIG': {'hosts': [os.environ.get('REDIS_URL', 'redis://redis:6379/0')]},
-    },
-}
+import socket
+try:
+    socket.gethostbyname('redis')
+    CHANNEL_LAYERS = {
+        'default': {
+            'BACKEND': 'channels_redis.core.RedisChannelLayer',
+            'CONFIG': {'hosts': [os.environ.get('REDIS_URL', 'redis://redis:6379/0')]},
+        },
+    }
+except socket.gaierror:
+    CHANNEL_LAYERS = {
+        'default': {
+            'BACKEND': 'channels.layers.InMemoryChannelLayer',
+        },
+    }
 
 AUTH_USER_MODEL = 'tareas.Usuario'
 

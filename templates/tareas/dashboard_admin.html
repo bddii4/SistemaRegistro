@@ -131,12 +131,13 @@
 function triggerTodos() {
   fetch('/api/trigger/', {
     method: 'POST',
-    headers: {'Content-Type':'application/json','X-CSRFToken': getCSRF()},
+    headers: {'Content-Type':'application/json','X-CSRFToken': getCSRF(),'X-Requested-With':'XMLHttpRequest'},
     body: JSON.stringify({}),
   }).then(r=>r.json()).then(d => {
     if (d.ok) regintraToast(`Solicitud enviada a ${d.notificados} empleados ✓`, 'success');
+    else if (d.error) regintraToast('Error: ' + d.error, 'danger');
     else regintraToast('Error al enviar solicitud', 'danger');
-  });
+  }).catch(err => regintraToast('Error de red: ' + err.message, 'danger'));
 }
 
 const rgWS = new RegintraWS({

@@ -1,6 +1,7 @@
 from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib.auth import login, authenticate
+
 from django.contrib.auth.decorators import login_required
+from django.views.decorators.cache import never_cache
 from django.contrib import messages
 from django.http import JsonResponse, HttpResponse
 from django.utils import timezone
@@ -25,6 +26,7 @@ def solo_admin(func):
     return wrapper
 
 
+@never_cache
 def registro(request):
     if request.user.is_authenticated:
         return redirect('home')
@@ -34,9 +36,8 @@ def registro(request):
             user = form.save(commit=False)
             user.rol = 'empleado'
             user.save()
-            login(request, user)
-            messages.success(request, f'¡Bienvenido, {user.first_name}! Tu cuenta fue creada.')
-            return redirect('dashboard_empleado')
+            messages.success(request, 'Cuenta creada correctamente. Inicia sesión.')
+            return redirect('login')
     else:
         form = RegistroForm()
     return render(request, 'tareas/registro.html', {'form': form})
@@ -50,6 +51,7 @@ def home(request):
 
 
 @login_required
+@never_cache
 def dashboard_empleado(request):
     if request.user.rol == 'admin':
         return redirect('dashboard_admin')
@@ -80,15 +82,18 @@ def enviar_reporte(request):
         reporte.ip_origen = request.META.get('REMOTE_ADDR')
         reporte.save()
 
-        channel_layer = get_channel_layer()
-        async_to_sync(channel_layer.group_send)('admins', {
-            'type': 'nuevo_reporte',
-            'payload': {
-                'empleado': request.user.get_full_name() or request.user.username,
-                'actividad': reporte.actividad[:100],
-                'timestamp': reporte.creado_en.strftime('%H:%M'),
-            }
-        })
+        try:
+            channel_layer = get_channel_layer()
+            async_to_sync(channel_layer.group_send)('admins', {
+                'type': 'nuevo_reporte',
+                'payload': {
+                    'empleado': request.user.get_full_name() or request.user.username,
+                    'actividad': reporte.actividad[:100],
+                    'timestamp': reporte.creado_en.strftime('%H:%M'),
+                }
+            })
+        except Exception:
+            pass
 
         if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
             return JsonResponse({'ok': True, 'mensaje': 'Reporte guardado correctamente'})
@@ -103,6 +108,7 @@ def enviar_reporte(request):
 
 @login_required
 @solo_admin
+@never_cache
 def dashboard_admin(request):
     total_usuarios = Usuario.objects.filter(rol='empleado').count()
     total_reportes = Reporte.objects.count()
@@ -243,34 +249,40 @@ def toggle_usuario(request, pk):
 @login_required
 @require_POST
 def api_trigger_reporte(request):
-    if request.user.rol != 'admin':
-        return JsonResponse({'error': 'Sin permiso'}, status=403)
+    try:
+        if request.user.rol != 'admin':
+            return JsonResponse({'error': 'Sin permiso'}, status=403)
 
-    data = json.loads(request.body or '{}')
-    empleado_id = data.get('empleado_id')
-    channel_layer = get_channel_layer()
+        data = json.loads(request.body or '{}')
+        empleado_id = data.get('empleado_id')
+        channel_layer = get_channel_layer()
 
-    if empleado_id:
-        empleados = Usuario.objects.filter(id=empleado_id, rol='empleado', is_active=True)
-    else:
-        empleados = Usuario.objects.filter(rol='empleado', is_active=True)
+        if empleado_id:
+            empleados = Usuario.objects.filter(id=empleado_id, rol='empleado', is_active=True)
+        else:
+            empleados = Usuario.objects.filter(rol='empleado', is_active=True)
 
-    notificados = 0
-    for emp in empleados:
-        sol = SolicitudReporte.objects.create(
-            admin=request.user,
-            empleado=emp,
-            tipo='manual',
-            estado='pendiente',
-            expira_en=timezone.now() + timedelta(minutes=10),
-        )
-        async_to_sync(channel_layer.group_send)(
-            f'empleado_{emp.id}',
-            {'type': 'solicitud_reporte', 'solicitud_id': str(sol.id)}
-        )
-        notificados += 1
+        notificados = 0
+        for emp in empleados:
+            sol = SolicitudReporte.objects.create(
+                admin=request.user,
+                empleado=emp,
+                tipo='manual',
+                estado='pendiente',
+                expira_en=timezone.now() + timedelta(minutes=10),
+            )
+            try:
+                async_to_sync(channel_layer.group_send)(
+                    f'empleado_{emp.id}',
+                    {'type': 'solicitud_reporte', 'solicitud_id': str(sol.id)}
+                )
+            except Exception:
+                pass
+            notificados += 1
 
-    return JsonResponse({'ok': True, 'notificados': notificados})
+        return JsonResponse({'ok': True, 'notificados': notificados})
+    except Exception as e:
+        return JsonResponse({'ok': False, 'error': str(e)}, status=500)
 
 
 @login_required

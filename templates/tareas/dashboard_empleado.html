@@ -224,24 +224,31 @@ function enviarReporte() {
   document.getElementById('btn-enviar-reporte').disabled = true;
   document.getElementById('btn-enviar-reporte').innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Enviando…';
 
+  const csrfInput = form.querySelector('input[name="csrfmiddlewaretoken"]');
+  if (csrfInput) csrfInput.value = getCSRF();
   const formData = new FormData(form);
   fetch(form.action, {
     method: 'POST',
-    headers: { 'X-Requested-With': 'XMLHttpRequest' },
+    headers: { 'X-Requested-With': 'XMLHttpRequest', 'X-CSRFToken': getCSRF() },
     body: formData,
   })
-  .then(r => r.json())
+  .then(r => {
+    if (!r.ok) {
+      throw new Error(`HTTP ${r.status}: ${r.statusText}`);
+    }
+    return r.json();
+  })
   .then(data => {
     if (data.ok) {
       modal.hide();
       iniciarTimer();
-      regintraToast('Reporte enviado correctamente ✓', 'success');
+      regintraToast('Reporte enviado correctamente \u2713', 'success');
       agregarReporteLocal(actividad);
     } else {
-      regintraToast('Error al enviar el reporte', 'danger');
+      regintraToast('Error: ' + (data.mensaje || 'verifica los campos'), 'danger');
     }
   })
-  .catch(() => regintraToast('Error de conexión', 'danger'))
+  .catch(err => regintraToast('Error: ' + err.message, 'danger'))
   .finally(() => {
     document.getElementById('btn-enviar-reporte').disabled = false;
     document.getElementById('btn-enviar-reporte').innerHTML = '<i class="bi bi-send me-2"></i>Enviar reporte';
