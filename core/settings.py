@@ -85,17 +85,19 @@ try:
             'CONFIG': {'hosts': [os.environ.get('REDIS_URL', 'redis://redis:6379/0')]},
         },
     }
+    CELERY_BROKER_URL = os.environ.get('REDIS_URL', 'redis://redis:6379/0')
+    CELERY_RESULT_BACKEND = os.environ.get('REDIS_URL', 'redis://redis:6379/0')
 except socket.gaierror:
     CHANNEL_LAYERS = {
         'default': {
             'BACKEND': 'channels.layers.InMemoryChannelLayer',
         },
     }
+    CELERY_BROKER_URL = None
+    CELERY_RESULT_BACKEND = None
 
 AUTH_USER_MODEL = 'tareas.Usuario'
 
-CELERY_BROKER_URL = os.environ.get('REDIS_URL', 'redis://redis:6379/0')
-CELERY_RESULT_BACKEND = os.environ.get('REDIS_URL', 'redis://redis:6379/0')
 CELERY_TIMEZONE = 'America/Mexico_City'
 CELERY_BEAT_SCHEDULER = 'django_celery_beat.schedulers:DatabaseScheduler'
 

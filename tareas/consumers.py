@@ -45,6 +45,13 @@ class MonitorConsumer(AsyncWebsocketConsumer):
             'solicitud_id': event['solicitud_id'],
         }))
 
+    async def re_solicitud_reporte(self, event):
+        await self.send(json.dumps({
+            'tipo': 're_solicitud',
+            'solicitud_id': event['solicitud_id'],
+            'mensaje': event.get('mensaje', 'Aún tienes un reporte pendiente'),
+        }))
+
     async def nuevo_reporte(self, event):
         await self.send(json.dumps({
             'tipo': 'nuevo_reporte',

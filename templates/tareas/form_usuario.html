@@ -1,5 +1,5 @@
 {% extends "tareas/base_admin.html" %}
-{% block title %}{{ titulo }} — Regintra{% endblock %}
+{% block title %}{{ titulo }} — IntraControl{% endblock %}
 
 {% block admin_content %}
 <div class="d-flex align-items-center gap-3 mb-4">
@@ -11,13 +11,13 @@
 
 <div class="row">
   <div class="col-lg-6">
-    <div class="card border-0 shadow-sm">
+    <div class="card">
       <div class="card-body p-4">
         <form method="post">
           {% csrf_token %}
           {% for field in form %}
           <div class="mb-3">
-            <label class="form-label small fw-semibold text-uppercase text-muted">{{ field.label }}</label>
+            <label class="form-label">{{ field.label }}</label>
             {{ field }}
             {% if field.errors %}
             <div class="invalid-feedback d-block">{{ field.errors.0 }}</div>
@@ -30,7 +30,7 @@
 
           {% if not usuario %}
           <div class="mb-3">
-            <label class="form-label small fw-semibold text-uppercase text-muted">Rol</label>
+            <label class="form-label">Rol</label>
             <select name="rol" class="form-select">
               <option value="empleado">Empleado</option>
               <option value="admin">Administrador</option>

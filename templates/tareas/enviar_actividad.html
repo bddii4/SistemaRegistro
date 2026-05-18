@@ -1,6 +1,6 @@
 {% extends 'tareas/base.html' %}
 
-{% block title %}Reporte Obligatorio — Regintra{% endblock %}
+{% block title %}Reporte Obligatorio — IntraControl{% endblock %}
 
 {% block body %}
 <div class="container mt-5">
@@ -12,24 +12,24 @@
                 {% endfor %}
             {% endif %}
 
-            <div class="card shadow-lg border-0">
-                <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center">
-                    <h5 class="mb-0">Reporte Obligatorio</h5>
-                    <span id="timer" class="badge bg-warning text-dark">30:00</span>
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0 fw-bold">Reporte Obligatorio</h5>
+                    <span id="timer" class="badge bg-warning">30:00</span>
                 </div>
                 <div class="card-body p-4">
                     <form method="post" action="{% url 'enviar_reporte' %}">
                         {% csrf_token %}
                         <div class="mb-3">
-                            <label class="form-label fw-bold">Actividad actual:</label>
+                            <label class="form-label">Actividad actual:</label>
                             {{ form.actividad }}
                         </div>
                         <div class="mb-3">
-                            <label class="form-label fw-bold">Avances:</label>
+                            <label class="form-label">Avances:</label>
                             {{ form.avances }}
                         </div>
                         <div class="mb-3">
-                            <label class="form-label fw-bold">Observaciones:</label>
+                            <label class="form-label">Observaciones:</label>
                             {{ form.observaciones }}
                         </div>
                         <button type="submit" class="btn btn-primary w-100 btn-lg">Enviar Reporte Ahora</button>
@@ -41,13 +41,15 @@
 </div>
 
 <script>
-    let seconds = 1800;
+    const DURACION_MS = 30 * 60 * 1000;
+    let startTime = Date.now();
     setInterval(() => {
-        if (seconds <= 0) return;
-        seconds--;
-        let m = Math.floor(seconds / 60);
-        let s = seconds % 60;
-        document.getElementById('timer').innerText = `${m}:${s < 10 ? '0'+s : s}`;
+        const elapsed = Date.now() - startTime;
+        const remaining = Math.max(0, DURACION_MS - elapsed);
+        const totalSec = Math.floor(remaining / 1000);
+        const m = Math.floor(totalSec / 60);
+        const s = totalSec % 60;
+        document.getElementById('timer').innerText = `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
     }, 1000);
 </script>
 {% endblock %}

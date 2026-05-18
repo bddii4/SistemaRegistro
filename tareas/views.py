@@ -15,6 +15,7 @@ import json, csv
 
 from .models import Usuario, Reporte, SolicitudReporte
 from .forms import RegistroForm, ReporteForm, UsuarioAdminForm
+from .tasks import re_notificar_solicitud
 
 
 def solo_admin(func):
@@ -275,6 +276,13 @@ def api_trigger_reporte(request):
                 async_to_sync(channel_layer.group_send)(
                     f'empleado_{emp.id}',
                     {'type': 'solicitud_reporte', 'solicitud_id': str(sol.id)}
+                )
+            except Exception:
+                pass
+            try:
+                re_notificar_solicitud.apply_async(
+                    args=[str(sol.id)],
+                    countdown=300,
                 )
             except Exception:
                 pass

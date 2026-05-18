@@ -1,21 +1,21 @@
 {% extends "tareas/base.html" %}
-{% block title %}Mi Dashboard — Regintra{% endblock %}
+{% block title %}Envío de reportes — IntraControl{% endblock %}
 {% block body_class %}empleado-layout{% endblock %}
 
 {% block body %}
 
 <!-- Navbar -->
-<nav class="navbar navbar-dark bg-dark-subtle border-bottom px-4">
+<nav class="navbar navbar-light border-bottom px-4">
   <a class="navbar-brand fw-bold" href="#">
-    <i class="bi bi-lightning-charge-fill text-primary me-2"></i>Regintra
+    <i class="bi bi-lightning-charge-fill text-primary me-2"></i>IntraControl
   </a>
   <div class="d-flex align-items-center gap-3">
     <span class="text-muted small">
       <i class="bi bi-person-circle me-1"></i>
       {{ request.user.get_full_name|default:request.user.username }}
     </span>
-    <span class="badge bg-success-subtle text-success border border-success-subtle">Empleado</span>
-    <a href="{% url 'logout' %}" class="btn btn-outline-secondary btn-sm">
+    <span class="badge bg-success">Empleado</span>
+    <a href="{% url 'logout' %}" class="btn btn-outline-primary btn-sm">
       <i class="bi bi-box-arrow-left me-1"></i>Salir
     </a>
   </div>
@@ -28,8 +28,8 @@
     <div class="col-lg-5">
 
       <!-- Tarjeta del temporizador -->
-      <div class="card shadow-sm border-0 mb-4" id="timer-card">
-        <div class="card-body text-center py-5">
+      <div class="timer-card mb-4" id="timer-card">
+        <div class="text-center">
           <p class="text-muted small text-uppercase fw-semibold letter-spacing mb-3">
             <i class="bi bi-clock me-1"></i>Próximo reporte en
           </p>
@@ -44,13 +44,13 @@
       <!-- Stats del empleado -->
       <div class="row g-3">
         <div class="col-6">
-          <div class="card border-0 shadow-sm text-center py-3">
+          <div class="card text-center py-3">
             <div class="h2 fw-bold text-primary mb-0">{{ total_reportes }}</div>
             <div class="text-muted small">Total reportes</div>
           </div>
         </div>
         <div class="col-6">
-          <div class="card border-0 shadow-sm text-center py-3">
+          <div class="card text-center py-3">
             <div class="h2 fw-bold text-success mb-0">{{ reportes_hoy }}</div>
             <div class="text-muted small">Hoy</div>
           </div>
@@ -61,21 +61,21 @@
 
     <!-- Columna derecha: Historial -->
     <div class="col-lg-7">
-      <div class="card border-0 shadow-sm">
-        <div class="card-header bg-transparent border-0 pb-0 pt-3 px-4">
+      <div class="card">
+        <div class="card-header bg-transparent pb-0 pt-3 px-4">
           <h5 class="fw-bold mb-0"><i class="bi bi-journal-text me-2 text-primary"></i>Mis reportes recientes</h5>
         </div>
         <div class="card-body px-4">
           {% if mis_reportes %}
           <div class="d-flex flex-column gap-3">
             {% for r in mis_reportes %}
-            <div class="reporte-item p-3 rounded-3 border">
+            <div class="reporte-item p-3 border">
               <div class="d-flex justify-content-between align-items-start mb-2">
                 <span class="small text-muted">
                   <i class="bi bi-calendar3 me-1"></i>{{ r.creado_en|date:"d/m/Y" }}
                   <i class="bi bi-clock ms-2 me-1"></i>{{ r.creado_en|date:"H:i" }}
                 </span>
-                <span class="badge {% if r.estado == 'revisado' %}bg-success-subtle text-success{% else %}bg-warning-subtle text-warning-emphasis{% endif %}">
+                <span class="badge {% if r.estado == 'revisado' %}bg-success{% else %}bg-warning{% endif %}">
                   {{ r.get_estado_display }}
                 </span>
               </div>
@@ -102,7 +102,7 @@
 <!-- ═══════════════ MODAL ALARMA ═══════════════ -->
 <div class="modal fade" id="alarma-modal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1">
   <div class="modal-dialog modal-dialog-centered">
-    <div class="modal-content border-0 shadow-lg">
+    <div class="modal-content">
 
       <div class="modal-header alarma-header border-0 pb-0">
         <div class="w-100 text-center pt-2">
@@ -120,21 +120,21 @@
           <input type="hidden" id="solicitud-id-field" name="solicitud_id" value="">
 
           <div class="mb-3">
-            <label class="form-label fw-semibold small text-uppercase text-muted">
+            <label class="form-label">
               <i class="bi bi-cursor-text me-1"></i>¿Qué estás haciendo ahora?
             </label>
             <textarea name="actividad" id="campo-actividad" class="form-control" rows="3"
               placeholder="Describe tu actividad actual con detalle..." required></textarea>
           </div>
           <div class="mb-3">
-            <label class="form-label fw-semibold small text-uppercase text-muted">
+            <label class="form-label">
               <i class="bi bi-check2-circle me-1"></i>Avances del día
             </label>
             <textarea name="avances" class="form-control" rows="2"
               placeholder="¿Qué has avanzado hasta ahora?"></textarea>
           </div>
           <div class="mb-3">
-            <label class="form-label fw-semibold small text-uppercase text-muted">
+            <label class="form-label">
               <i class="bi bi-chat-left-text me-1"></i>Observaciones
             </label>
             <textarea name="observaciones" class="form-control" rows="2"
@@ -164,44 +164,51 @@
 
 {% block extra_js %}
 <script>
-const DURACION = 30 * 60;
-let segundosRestantes = DURACION;
+const DURACION_MS = 30 * 60 * 1000;
+let startTime = null;
 let timerInterval = null;
+
 const modal = new bootstrap.Modal(document.getElementById('alarma-modal'));
 
-function formatTime(s) {
-  const m = Math.floor(s / 60);
-  const sec = s % 60;
-  return `${String(m).padStart(2,'0')}:${String(sec).padStart(2,'0')}`;
+function formatTime(ms) {
+  if (ms < 0) ms = 0;
+  const totalSec = Math.floor(ms / 1000);
+  const m = Math.floor(totalSec / 60);
+  const s = totalSec % 60;
+  return `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
 }
 
 function actualizarTimer() {
-  document.getElementById('timer-display').textContent = formatTime(segundosRestantes);
-  const pct = ((DURACION - segundosRestantes) / DURACION) * 100;
-  document.getElementById('timer-bar').style.width = pct + '%';
+  if (startTime === null) return;
+  const elapsed = Date.now() - startTime;
+  const remaining = DURACION_MS - elapsed;
+
+  document.getElementById('timer-display').textContent = formatTime(remaining);
+  const pct = (elapsed / DURACION_MS) * 100;
+  document.getElementById('timer-bar').style.width = Math.min(pct, 100) + '%';
 
   const card = document.getElementById('timer-card');
-  if (segundosRestantes <= 60) {
+  if (remaining <= 60000) {
     card.classList.add('timer-urgente');
     document.getElementById('timer-msg').textContent = '⚠️ ¡Prepara tu reporte!';
   } else {
     card.classList.remove('timer-urgente');
     document.getElementById('timer-msg').textContent = 'Trabaja con tranquilidad — te avisaremos';
   }
+
+  if (remaining <= 0) {
+    clearInterval(timerInterval);
+    timerInterval = null;
+    abrirModalReporte();
+  }
 }
 
 function iniciarTimer() {
-  clearInterval(timerInterval);
-  segundosRestantes = DURACION;
+  if (timerInterval) clearInterval(timerInterval);
+  timerInterval = null;
+  startTime = Date.now();
   actualizarTimer();
-  timerInterval = setInterval(() => {
-    segundosRestantes--;
-    actualizarTimer();
-    if (segundosRestantes <= 0) {
-      clearInterval(timerInterval);
-      abrirModalReporte();
-    }
-  }, 1000);
+  timerInterval = setInterval(actualizarTimer, 1000);
 }
 
 function abrirModalReporte(solicitudId = '') {
@@ -211,7 +218,14 @@ function abrirModalReporte(solicitudId = '') {
   document.getElementById('modal-form-body').style.display = '';
   document.querySelector('#alarma-modal .modal-footer').style.display = '';
   modal.show();
-  try { new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAA==').play(); } catch(e) {}
+}
+
+function notificarIngresoReporte() {
+  reproducirSonidoNotificacion();
+  mostrarNotificacionOS(
+    '⏰ Hora de reportar',
+    'Describe tu actividad actual en el sistema Regintra.'
+  );
 }
 
 function enviarReporte() {
@@ -260,18 +274,23 @@ function agregarReporteLocal(actividad) {
   if (!lista) return;
   const ahora = new Date();
   const item = document.createElement('div');
-  item.className = 'reporte-item p-3 rounded-3 border border-success-subtle bg-success-subtle';
+  item.className = 'reporte-item p-3 border';
+  item.style.background = '#ecfdf5';
+  item.style.borderColor = '#a7f3d0 !important';
   item.innerHTML = `
     <div class="d-flex justify-content-between align-items-start mb-2">
       <span class="small text-muted">
         <i class="bi bi-calendar3 me-1"></i>${ahora.toLocaleDateString('es-MX')}
         <i class="bi bi-clock ms-2 me-1"></i>${ahora.toLocaleTimeString('es-MX',{hour:'2-digit',minute:'2-digit'})}
       </span>
-      <span class="badge bg-warning-subtle text-warning-emphasis">Pendiente revisión</span>
+      <span class="badge bg-warning">Pendiente revisión</span>
     </div>
     <p class="mb-0 fw-semibold small">${actividad.substring(0,120)}</p>`;
   lista.insertBefore(item, lista.firstChild);
 }
+
+// ── Solicitar permiso de notificación al cargar ──
+try { solicitarPermisoNotificacion(); } catch (_) {}
 
 const rgWS = new RegintraWS({
   onConectado() {
@@ -283,8 +302,13 @@ const rgWS = new RegintraWS({
     document.getElementById('ws-label').textContent = 'Reconectando…';
   },
   onSolicitud(data) {
-    clearInterval(timerInterval);
+    if (timerInterval) clearInterval(timerInterval);
+    timerInterval = null;
+    notificarIngresoReporte();
     abrirModalReporte(data.solicitud_id);
+  },
+  onReSolicitud(data) {
+    notificarIngresoReporte();
   },
 });
 

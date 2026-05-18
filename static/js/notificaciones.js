@@ -22,9 +22,60 @@ function regintraToast(mensaje, tipo = 'success', duracion = 4000) {
   }, duracion);
 }
 
+function solicitarPermisoNotificacion() {
+  if (!('Notification' in window)) return false;
+  if (Notification.permission === 'granted') return true;
+  if (Notification.permission !== 'denied') {
+    Notification.requestPermission();
+  }
+  return Notification.permission === 'granted';
+}
+
+function mostrarNotificacionOS(titulo, cuerpo) {
+  if (!('Notification' in window)) return;
+  if (Notification.permission === 'granted') {
+    try {
+      new Notification(titulo, {
+        body: cuerpo,
+        tag: 'regintra-recordatorio',
+        requireInteraction: true,
+      });
+    } catch (_) {}
+  }
+}
+
+function reproducirSonidoNotificacion() {
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+
+    const osc1 = ctx.createOscillator();
+    const gain1 = ctx.createGain();
+    osc1.connect(gain1);
+    gain1.connect(ctx.destination);
+    osc1.frequency.value = 660;
+    osc1.type = 'sine';
+    gain1.gain.setValueAtTime(0.2, ctx.currentTime);
+    gain1.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.15);
+    osc1.start(ctx.currentTime);
+    osc1.stop(ctx.currentTime + 0.15);
+
+    const osc2 = ctx.createOscillator();
+    const gain2 = ctx.createGain();
+    osc2.connect(gain2);
+    gain2.connect(ctx.destination);
+    osc2.frequency.value = 880;
+    osc2.type = 'sine';
+    gain2.gain.setValueAtTime(0.2, ctx.currentTime + 0.12);
+    gain2.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.35);
+    osc2.start(ctx.currentTime + 0.12);
+    osc2.stop(ctx.currentTime + 0.35);
+  } catch (_) {}
+}
+
 class RegintraWS {
-  constructor({ onSolicitud, onNuevoReporte, onConectado, onDesconectado } = {}) {
+  constructor({ onSolicitud, onReSolicitud, onNuevoReporte, onConectado, onDesconectado } = {}) {
     this.onSolicitud    = onSolicitud    || (() => {});
+    this.onReSolicitud  = onReSolicitud  || (() => {});
     this.onNuevoReporte = onNuevoReporte || (() => {});
     this.onConectado    = onConectado    || (() => {});
     this.onDesconectado = onDesconectado || (() => {});
@@ -53,8 +104,9 @@ class RegintraWS {
     this.ws.onmessage = (e) => {
       try {
         const data = JSON.parse(e.data);
-        if (data.tipo === 'solicitud')     this.onSolicitud(data);
-        if (data.tipo === 'nuevo_reporte') this.onNuevoReporte(data);
+        if (data.tipo === 'solicitud')      this.onSolicitud(data);
+        if (data.tipo === 're_solicitud')   this.onReSolicitud(data);
+        if (data.tipo === 'nuevo_reporte')  this.onNuevoReporte(data);
       } catch (_) {}
     };
   }

@@ -1,10 +1,10 @@
 {% extends "tareas/base_admin.html" %}
-{% block title %}Dashboard Admin — Regintra{% endblock %}
+{% block title %}Control de reportes — IntraControl{% endblock %}
 
 {% block admin_content %}
 <div class="d-flex justify-content-between align-items-center mb-4">
   <div>
-    <h4 class="fw-bold mb-0">Dashboard</h4>
+    <h4 class="fw-bold mb-0">Control de reportes</h4>
     <p class="text-muted small mb-0">Panel de control — {{ request.user.get_full_name|default:request.user.username }}</p>
   </div>
   <button class="btn btn-primary" onclick="triggerTodos()">
@@ -15,53 +15,53 @@
 <!-- Stats -->
 <div class="row g-3 mb-4">
   <div class="col-sm-6 col-xl-3">
-    <div class="stat-card card border-0 shadow-sm">
+    <div class="stat-card card">
       <div class="card-body">
         <div class="d-flex align-items-center justify-content-between">
           <div>
             <p class="stat-label">Total empleados</p>
             <h3 class="stat-value mb-0">{{ total_usuarios }}</h3>
           </div>
-          <div class="stat-icon bg-primary-subtle text-primary"><i class="bi bi-people-fill"></i></div>
+          <div class="stat-icon"><i class="bi bi-people-fill"></i></div>
         </div>
       </div>
     </div>
   </div>
   <div class="col-sm-6 col-xl-3">
-    <div class="stat-card card border-0 shadow-sm">
+    <div class="stat-card card">
       <div class="card-body">
         <div class="d-flex align-items-center justify-content-between">
           <div>
             <p class="stat-label">Total reportes</p>
             <h3 class="stat-value mb-0">{{ total_reportes }}</h3>
           </div>
-          <div class="stat-icon bg-success-subtle text-success"><i class="bi bi-file-text-fill"></i></div>
+          <div class="stat-icon"><i class="bi bi-file-text-fill"></i></div>
         </div>
       </div>
     </div>
   </div>
   <div class="col-sm-6 col-xl-3">
-    <div class="stat-card card border-0 shadow-sm">
+    <div class="stat-card card">
       <div class="card-body">
         <div class="d-flex align-items-center justify-content-between">
           <div>
             <p class="stat-label">Reportes hoy</p>
             <h3 class="stat-value mb-0">{{ reportes_hoy }}</h3>
           </div>
-          <div class="stat-icon bg-warning-subtle text-warning"><i class="bi bi-calendar-check-fill"></i></div>
+          <div class="stat-icon"><i class="bi bi-calendar-check-fill"></i></div>
         </div>
       </div>
     </div>
   </div>
   <div class="col-sm-6 col-xl-3">
-    <div class="stat-card card border-0 shadow-sm">
+    <div class="stat-card card">
       <div class="card-body">
         <div class="d-flex align-items-center justify-content-between">
           <div>
             <p class="stat-label">Usuarios activos</p>
             <h3 class="stat-value mb-0">{{ usuarios_activos }}</h3>
           </div>
-          <div class="stat-icon bg-info-subtle text-info"><i class="bi bi-person-check-fill"></i></div>
+          <div class="stat-icon"><i class="bi bi-person-check-fill"></i></div>
         </div>
       </div>
     </div>
@@ -71,8 +71,8 @@
 <!-- Últimos reportes + Feed WS -->
 <div class="row g-4">
   <div class="col-lg-7">
-    <div class="card border-0 shadow-sm">
-      <div class="card-header bg-transparent border-0 d-flex justify-content-between align-items-center">
+    <div class="card">
+      <div class="card-header d-flex justify-content-between align-items-center">
         <h6 class="fw-bold mb-0"><i class="bi bi-journal-text me-2 text-primary"></i>Últimos reportes</h6>
         <a href="{% url 'lista_reportes' %}" class="btn btn-sm btn-outline-primary">Ver todos</a>
       </div>
@@ -87,7 +87,7 @@
               </div>
               <div class="text-end flex-shrink-0 ms-3">
                 <div class="text-muted small">{{ r.creado_en|date:"H:i" }}</div>
-                <span class="badge {% if r.estado == 'revisado' %}bg-success-subtle text-success{% else %}bg-warning-subtle text-warning-emphasis{% endif %} mt-1">
+                <span class="badge {% if r.estado == 'revisado' %}bg-success{% else %}bg-warning{% endif %} mt-1">
                   {{ r.get_estado_display }}
                 </span>
               </div>
@@ -105,10 +105,10 @@
   </div>
 
   <div class="col-lg-5">
-    <div class="card border-0 shadow-sm">
-      <div class="card-header bg-transparent border-0 d-flex justify-content-between align-items-center">
+    <div class="card">
+      <div class="card-header d-flex justify-content-between align-items-center">
         <h6 class="fw-bold mb-0"><i class="bi bi-broadcast me-2 text-success"></i>Tiempo real</h6>
-        <span class="badge bg-success-subtle text-success" id="ws-admin-badge">
+        <span class="badge bg-success" id="ws-admin-badge">
           <span class="ws-dot me-1" id="ws-admin-dot"></span>En vivo
         </span>
       </div>
@@ -143,11 +143,11 @@ function triggerTodos() {
 const rgWS = new RegintraWS({
   onConectado() {
     document.getElementById('ws-admin-dot').classList.add('on');
-    document.getElementById('ws-admin-badge').className = 'badge bg-success-subtle text-success';
+    document.getElementById('ws-admin-badge').className = 'badge bg-success';
   },
   onDesconectado() {
     document.getElementById('ws-admin-dot').classList.remove('on');
-    document.getElementById('ws-admin-badge').className = 'badge bg-danger-subtle text-danger';
+    document.getElementById('ws-admin-badge').className = 'badge bg-secondary';
   },
   onNuevoReporte(data) {
     agregarFeed(data.payload);
@@ -159,7 +159,8 @@ function agregarFeed(p) {
   document.getElementById('feed-empty')?.remove();
   const feed = document.getElementById('feed-live');
   const item = document.createElement('div');
-  item.className = 'p-3 rounded-3 border border-success-subtle bg-success-subtle';
+  item.className = 'p-3 rounded-3 border border-success';
+  item.style.background = '#ecfdf5';
   item.style.animation = 'fadeIn .3s ease';
   item.innerHTML = `
     <div class="d-flex justify-content-between align-items-start">

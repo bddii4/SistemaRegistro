@@ -1,5 +1,5 @@
 {% extends "tareas/base_admin.html" %}
-{% block title %}Usuarios — Regintra{% endblock %}
+{% block title %}Usuarios — IntraControl{% endblock %}
 
 {% block admin_content %}
 <div class="d-flex justify-content-between align-items-center mb-4">
@@ -12,10 +12,10 @@
   </a>
 </div>
 
-<div class="card border-0 shadow-sm">
+<div class="card">
   <div class="table-responsive">
     <table class="table table-hover align-middle mb-0">
-      <thead class="table-light">
+      <thead>
         <tr>
           <th class="px-4">Nombre</th>
           <th>Usuario</th>
@@ -33,12 +33,12 @@
           </td>
           <td><span class="small text-muted">@{{ u.username }}</span></td>
           <td><span class="small text-muted">{{ u.email|default:"—" }}</span></td>
-          <td><span class="badge bg-secondary-subtle text-secondary">{{ u.num_reportes }}</span></td>
+          <td>            <span class="badge bg-secondary">{{ u.num_reportes }}</span></td>
           <td>
             {% if u.is_active %}
-            <span class="badge bg-success-subtle text-success">Activo</span>
+            <span class="badge bg-success">Activo</span>
             {% else %}
-            <span class="badge bg-danger-subtle text-danger">Inactivo</span>
+            <span class="badge bg-secondary">Inactivo</span>
             {% endif %}
           </td>
           <td>
