@@ -90,7 +90,7 @@ def enviar_reporte(request):
                 'payload': {
                     'empleado': request.user.get_full_name() or request.user.username,
                     'actividad': reporte.actividad[:100],
-                    'timestamp': reporte.creado_en.strftime('%H:%M'),
+                    'timestamp': timezone.localtime(reporte.creado_en).strftime('%H:%M'),
                 }
             })
         except Exception:

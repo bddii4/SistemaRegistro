@@ -20,14 +20,14 @@
           <label class="form-label small fw-bold text-uppercase text-muted">
             <i class="bi bi-cursor-text me-1"></i>Actividad actual
           </label>
-          <div class="p-3 bg-light rounded-3">{{ reporte.actividad }}</div>
+          <div class="p-3 rounded-3" style="background:var(--blue-50);border:1px solid var(--blue-200)">{{ reporte.actividad }}</div>
         </div>
         {% if reporte.avances %}
         <div class="mb-4">
           <label class="form-label small fw-bold text-uppercase text-muted">
             <i class="bi bi-check2-circle me-1"></i>Avances
           </label>
-          <div class="p-3 bg-light rounded-3">{{ reporte.avances }}</div>
+          <div class="p-3 rounded-3" style="background:var(--blue-50);border:1px solid var(--blue-200)">{{ reporte.avances }}</div>
         </div>
         {% endif %}
         {% if reporte.observaciones %}
@@ -35,7 +35,7 @@
           <label class="form-label small fw-bold text-uppercase text-muted">
             <i class="bi bi-chat-left-text me-1"></i>Observaciones
           </label>
-          <div class="p-3 bg-light rounded-3">{{ reporte.observaciones }}</div>
+          <div class="p-3 rounded-3" style="background:var(--blue-50);border:1px solid var(--blue-200)">{{ reporte.observaciones }}</div>
         </div>
         {% endif %}
 
@@ -52,27 +52,27 @@
   </div>
 
   <div class="col-lg-4">
-    <div class="card">
-      <div class="card-body p-4">
-        <h6 class="fw-bold mb-3">Información</h6>
-        <dl class="mb-0">
-          <dt class="small text-muted text-uppercase">Empleado</dt>
-          <dd class="fw-semibold mb-3">{{ reporte.usuario.get_full_name|default:reporte.usuario.username }}</dd>
-          <dt class="small text-muted text-uppercase">Usuario</dt>
-          <dd class="mb-3">@{{ reporte.usuario.username }}</dd>
-          <dt class="small text-muted text-uppercase">Fecha</dt>
-          <dd class="mb-3">{{ reporte.creado_en|date:"d/m/Y" }}</dd>
-          <dt class="small text-muted text-uppercase">Hora</dt>
-          <dd class="mb-3">{{ reporte.creado_en|date:"H:i" }}</dd>
-          <dt class="small text-muted text-uppercase">Estado</dt>
-          <dd>
-            <span class="badge {% if reporte.estado == 'revisado' %}bg-success{% else %}bg-warning text-dark{% endif %}">
-              {{ reporte.get_estado_display }}
-            </span>
-          </dd>
-        </dl>
+      <div class="card">
+        <div class="card-body p-4">
+          <h6 class="fw-bold mb-3"><i class="bi bi-info-circle me-2 text-primary"></i>Información</h6>
+          <dl class="mb-0">
+            <dt class="small text-muted text-uppercase">Empleado</dt>
+            <dd class="fw-semibold mb-3">{{ reporte.usuario.get_full_name|default:reporte.usuario.username }}</dd>
+            <dt class="small text-muted text-uppercase">Usuario</dt>
+            <dd class="mb-3">@{{ reporte.usuario.username }}</dd>
+            <dt class="small text-muted text-uppercase">Fecha</dt>
+            <dd class="mb-3">{{ reporte.creado_en|date:"d/m/Y" }}</dd>
+            <dt class="small text-muted text-uppercase">Hora</dt>
+            <dd class="mb-3">{{ reporte.creado_en|date:"H:i" }}</dd>
+            <dt class="small text-muted text-uppercase">Estado</dt>
+            <dd>
+              <span class="badge {% if reporte.estado == 'revisado' %}bg-success{% else %}bg-warning{% endif %}">
+                {{ reporte.get_estado_display }}
+              </span>
+            </dd>
+          </dl>
+        </div>
       </div>
-    </div>
   </div>
 </div>
 {% endblock %}

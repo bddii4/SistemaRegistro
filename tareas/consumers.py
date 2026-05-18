@@ -1,6 +1,7 @@
 import json
 from channels.generic.websocket import AsyncWebsocketConsumer
 from channels.db import database_sync_to_async
+from django.utils import timezone
 
 
 class MonitorConsumer(AsyncWebsocketConsumer):
@@ -34,7 +35,7 @@ class MonitorConsumer(AsyncWebsocketConsumer):
                 'payload': {
                     'empleado': self.user.get_full_name() or self.user.username,
                     'actividad': data.get('actividad', '')[:100],
-                    'timestamp': reporte.creado_en.strftime('%H:%M'),
+                    'timestamp': timezone.localtime(reporte.creado_en).strftime('%H:%M'),
                 }
             })
             await self.send(json.dumps({'tipo': 'confirmacion', 'mensaje': 'Reporte guardado'}))
