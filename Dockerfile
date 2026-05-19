@@ -13,3 +13,7 @@ COPY requirements.txt /app/
 RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . /app/
+
+CMD python manage.py migrate && \
+    python manage.py collectstatic --noinput && \
+    daphne -b 0.0.0.0 -p ${PORT:-8000} core.asgi:application

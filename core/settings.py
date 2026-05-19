@@ -7,7 +7,7 @@ load_dotenv()
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-fallback')
-DEBUG = os.environ.get('DEBUG', 'True') == 'True'
+DEBUG = os.environ.get('DEBUG', 'False') == 'True'
 ALLOWED_HOSTS = ['*']
 
 INSTALLED_APPS = [
@@ -27,6 +27,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -55,20 +56,14 @@ TEMPLATES = [
 
 ASGI_APPLICATION = 'core.asgi.application'
 
-import socket
-try:
-    socket.gethostbyname('db')
+# Database — Railway inyecta DATABASE_URL automáticamente
+DATABASE_URL = os.environ.get('DATABASE_URL')
+if DATABASE_URL:
+    import dj_database_url
     DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.postgresql',
-            'NAME': os.environ.get('POSTGRES_DB', 'regintra_db'),
-            'USER': os.environ.get('POSTGRES_USER', 'regintra_user'),
-            'PASSWORD': os.environ.get('POSTGRES_PASSWORD', 'regintra_pass'),
-            'HOST': 'db',
-            'PORT': '5432',
-        }
+        'default': dj_database_url.config(default=DATABASE_URL, conn_max_age=600)
     }
-except socket.gaierror:
+else:
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.sqlite3',
@@ -76,18 +71,18 @@ except socket.gaierror:
         }
     }
 
-import socket
-try:
-    socket.gethostbyname('redis')
+# Redis — Railway inyecta REDIS_URL automáticamente
+REDIS_URL = os.environ.get('REDIS_URL', '')
+if REDIS_URL:
     CHANNEL_LAYERS = {
         'default': {
             'BACKEND': 'channels_redis.core.RedisChannelLayer',
-            'CONFIG': {'hosts': [os.environ.get('REDIS_URL', 'redis://redis:6379/0')]},
+            'CONFIG': {'hosts': [REDIS_URL]},
         },
     }
-    CELERY_BROKER_URL = os.environ.get('REDIS_URL', 'redis://redis:6379/0')
-    CELERY_RESULT_BACKEND = os.environ.get('REDIS_URL', 'redis://redis:6379/0')
-except socket.gaierror:
+    CELERY_BROKER_URL = REDIS_URL
+    CELERY_RESULT_BACKEND = REDIS_URL
+else:
     CHANNEL_LAYERS = {
         'default': {
             'BACKEND': 'channels.layers.InMemoryChannelLayer',
@@ -109,6 +104,8 @@ USE_TZ = True
 STATIC_URL = '/static/'
 STATICFILES_DIRS = [BASE_DIR / 'static']
 STATIC_ROOT = BASE_DIR / 'staticfiles'
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 LOGIN_URL = '/login/'
